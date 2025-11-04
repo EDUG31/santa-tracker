@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎅 Santa Tracker</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #001a33;
+        color: white;
+        text-align: center;
+        overflow-x: hidden;
+    }
+
+    h1 {
+        font-size: 3em;
+        margin: 20px 0;
+        color: #ff0000;
+        text-shadow: 0 0 10px #fff;
+    }
+
+    #countdown {
+        font-size: 1.5em;
+        margin-bottom: 20px;
+        color: #ffcc00;
+        text-shadow: 0 0 5px #fff;
+    }
+
+    #map {
+        position: relative;
+        width: 90%;
+        max-width: 900px;
+        height: 450px;
+        margin: 0 auto;
+        background: url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg') no-repeat center;
+        background-size: contain;
+        border: 3px solid #fff;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    #santa {
+        position: absolute;
+        font-size: 2.5rem; /* big enough to see */
+        transform: translate(-50%, -50%);
+        z-index: 10;
+    }
+
+    #location {
+        margin-top: 10px;
+        font-size: 1.2em;
+    }
+
+    button {
+        margin-top: 15px;
+        padding: 10px 20px;
+        font-size: 1em;
+        cursor: pointer;
+        border-radius: 5px;
+        border: none;
+        background-color: #ff0000;
+        color: white;
+        transition: background 0.3s;
+    }
+
+    button:hover {
+        background-color: #cc0000;
+    }
+
+    #disclaimer {
+        margin-top: 20px;
+        font-size: 0.9em;
+        color: #cccccc;
+    }
+</style>
+</head>
+<body>
+
+<h1>🎅 Santa Tracker</h1>
+<div id="countdown"></div>
+
+<div id="map">
+    <div id="santa">🎅</div>
+</div>
+<div id="location">Santa is starting his journey...</div>
+<button onclick="resetSanta()">Reset Santa</button>
+<div id="disclaimer">⚠️ Disclaimer: This tracker is not accurate to Santa’s real location. It is for entertainment purposes only. 🎄</div>
+
+<script>
+    // Countdown until Christmas
+    function updateCountdown() {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        let christmas = new Date(currentYear, 11, 25);
+        if (today > christmas) christmas.setFullYear(currentYear + 1);
+        const diffTime = christmas - today;
+        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        document.getElementById('countdown').innerText = `🎄 Only ${daysLeft} days until Christmas! 🎄`;
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000 * 60 * 60);
+
+    // Santa Tracker
+    const santa = document.getElementById('santa');
+    const locationText = document.getElementById('location');
+    const map = document.getElementById('map');
+
+    // Route: x/y in percentage relative to map width/height
+    const route = [
+        {x: 50, y: 5, city: "North Pole"},
+        {x: 40, y: 25, city: "London, UK"},
+        {x: 45, y: 30, city: "Paris, France"},
+        {x: 30, y: 40, city: "New York, USA"},
+        {x: 80, y: 30, city: "Tokyo, Japan"},
+        {x: 85, y: 75, city: "Sydney, Australia"},
+        {x: 35, y: 80, city: "Rio de Janeiro, Brazil"},
+        {x: 50, y: 5, city: "North Pole"} // back home
+    ];
+
+    let currentIndex = 0;
+    let nextIndex = 1;
+    let progress = 0; // 0 to 1
+    const speed = 0.005; // lower = slower
+
+    function animateSanta() {
+        const current = route[currentIndex];
+        const next = route[nextIndex];
+
+        // Interpolate positions in pixels
+        const x = (current.x + (next.x - current.x) * progress) * map.clientWidth / 100;
+        const y = (current.y + (next.y - current.y) * progress) * map.clientHeight / 100;
+
+        santa.style.left = x + 'px';
+        santa.style.top = y + 'px';
+
+        // Update location text
+        if (progress < 1) {
+            locationText.innerText = `🎅 Santa is going to: ${next.city}`;
+        } else {
+            locationText.innerText = `🎅 Santa is at: ${next.city}`;
+        }
+
+        progress += speed;
+        if (progress >= 1) {
+            progress = 0;
+            currentIndex = nextIndex;
+            nextIndex = (nextIndex + 1) % route.length;
+        }
+
+        requestAnimationFrame(animateSanta);
+    }
+
+    animateSanta();
+
+    function resetSanta() {
+        currentIndex = 0;
+        nextIndex = 1;
+        progress = 0;
+        locationText.innerText = `🎅 Santa is starting his journey...`;
+    }
+
+    // Optional: click anywhere on map to add a new destination
+    map.addEventListener('click', (e) => {
+        const rect = map.getBoundingClientRect();
+        const percentX = ((e.clientX - rect.left) / rect.width) * 100;
+        const percentY = ((e.clientY - rect.top) / rect.height) * 100;
+        route.push({x: percentX, y: percentY, city: `Custom Location`});
+    });
+</script>
+
+</body>
+</html>
